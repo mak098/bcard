@@ -3,6 +3,10 @@ from django.conf import settings
 from Agency.models import InterrestRateConfig,Agency
 from django.db.models.signals import post_save,pre_save
 from django.dispatch import receiver
+import json
+
+def default_json_value():
+    return {}
 
 class CashIn(models.Model):
 
@@ -15,7 +19,7 @@ class CashIn(models.Model):
     recipient = models.CharField(max_length=350,null=False, verbose_name= "Recipient")
     recipient_phone = models.CharField(max_length=350,null=False, verbose_name= "Recipient phone")
     comment = models.TextField(max_length=200,null=True, blank=True,verbose_name= "Comment")
-    interrest = models.JSONField(default={"type":""})
+    interrest = models.JSONField(default=default_json_value)
     status = models.BooleanField(default=False, verbose_name ="is served")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
