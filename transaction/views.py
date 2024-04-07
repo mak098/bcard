@@ -4,13 +4,12 @@ from rest_framework.response import Response
 from django.db.models import QuerySet
 from rest_framework import permissions
 from Agency.models import InterrestRateConfig
+from rest_framework.decorators import action
 
 class CashInViewSet(viewsets.ModelViewSet):
     
-    queryset = CashIn.objects.all()
     class_serializer = CashInSerializer
-    lookup_field = 'code'
-
+   
     def create(self,request):
         user = self.request.user        
         if user.is_authenticated:
@@ -57,11 +56,10 @@ class CashInViewSet(viewsets.ModelViewSet):
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
-    
-    def get_with_code(self,request):
+    @action(detail=False, methods=['get'], url_path='get/(?P<code>\w+)')
+    def get_with_code(self,request,code=None):        
         user = self.request.user        
         if user.is_authenticated:
-            code = request.data.get("code")
             if not CashIn.objects.filter(code=code).exists():
                 return Response({}, status=status.HTTP_202_ACCEPTED)
             cash_in =CashIn.objects.get(code=code) 
@@ -74,6 +72,46 @@ class CashInViewSet(viewsets.ModelViewSet):
 
 class cashOutViewSet(viewsets.ModelViewSet):
     class_serializer = CashOutSerializer
+    def out(self,request):
+        user = self.request.user        
+        if user.is_authenticated:
+            code = request.data.get('code')
+            amount = request.data.get('amount')
+            if not CashIn.objects.filter(code=code).exists():
+                detail = "Ce code de transaction n'existe pas"
+                return Response({'detail': detail}, status=status.HTTP_400_ACCEPTED)
+
+            cashin = CashIn.objects.get(code=code)
+            if cashin.amount < amount :
+                detail = 'Le montant que vous voulez retirer est superieur a celui qui a été envoyé'
+                return Response({'detail': detail}, status=status.HTTP_400_ACCEPTED)
+            
+            if CashOut.objects.filter(cashin__code=code).exists():
+                get_cashout = CashOut.objects.get(cashin__code=code)
+                if get_cashout.amount == cashin.amount:
+                    serializers = self.class_serializer(get_cashout,context={'request': request})
+                    detail ='Desolé le retrait est dèja effectué'
+                    return Response({'detail': detail,'data':serializers.data}, status=status.HTTP_400_ACCEPTED)
+                if get_cashout.amount +amount> cashin.amount:
+                    serializers = self.class_serializer(get_cashout,context={'request': request})
+                    detail =f"Desolé le retrait est dèja effectué a partie il reste un payement de {cashin.amount-cashout.amount}"
+                    return Response({'detail': detail,'data':serializers.data}, status=status.HTTP_400_ACCEPTED)
+                recipient = request.data.get("recipient")
+                recipient_phone = request.data.get("recipient_phone")
+                comment = request.data.get("comment")
+                cashout = CashOut.objects.create(
+                    cashin=cashin,
+                    amount= amount,
+                    recipient=recipient,
+                    recipient_phone=recipient_phone,
+                    comment=comment
+                )
+                cashout.save()
+            
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
     
 def transaction_code(user_id,agency_id,cashin_id):
     import datetime

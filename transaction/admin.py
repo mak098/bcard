@@ -81,14 +81,14 @@ class CashInAdmin(admin.ModelAdmin):
         print("generatepdf_view {0}".format(str(obj.id)))
         pass
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(CashInAdmin, self).get_form(request, obj, **kwargs)
-        field = form.base_fields["interrest"]
-        field.widget.can_add_related = False
-        field.widget.can_change_related = False
-        field.widget.can_delete_related = False
-        field.widget.can_view_related = False
-        return form
+    # def get_form(self, request, obj=None, **kwargs):
+    #     form = super(CashInAdmin, self).get_form(request, obj, **kwargs)
+    #     field = form.base_fields["interrest"]
+    #     field.widget.can_add_related = False
+    #     field.widget.can_change_related = False
+    #     field.widget.can_delete_related = False
+    #     field.widget.can_view_related = False
+    #     return form
 @admin.register(CashOut)
 class CashOutAdmin(admin.ModelAdmin):
     list_display = ("amount","recipient","recipient_phone","generate_pdf_preview_html")
