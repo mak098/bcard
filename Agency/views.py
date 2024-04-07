@@ -4,16 +4,17 @@ from rest_framework import viewsets,status
 from rest_framework.response import Response
 from django.db.models import QuerySet
 from rest_framework import permissions
-
+from rest_framework.decorators import action
 class InterrestRateConfigViewSet(viewsets.ModelViewSet):
-    # permission_classes = (permissions.IsAuthenticated, )
-    def get_destination(self,request):
+    
+    @action(detail=False, methods=['get'], url_path='get/(?P<id>\w+)')
+    def get_destination(self,request,id=None):
 
         user = self.request.user        
         if user.is_authenticated:
             origin = user.agency.id
-            destination = request.data.get('destination')
-            interest=InterrestRateConfig.objects.filter(agency_liason__origin__id=origin,agency_liason__destination__id =destination,status=True)
+            # destination = request.data.get('destination')
+            interest=InterrestRateConfig.objects.filter(agency_liason__origin__id=origin,agency_liason__destination__id =id,status=True)
             # interest=InterrestRateConfig.objects.filter(id=1)
             serializer = InterrestRateConfigSerializer(interest,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)

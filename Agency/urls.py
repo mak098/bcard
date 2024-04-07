@@ -7,6 +7,6 @@ router.register(r'interestConfigs', views.InterrestRateConfigViewSet, basename =
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('get-destination/', views.InterrestRateConfigViewSet.as_view({'get': 'get_destination'}), name='get'),
+    path('get-destination/<int:id>', views.InterrestRateConfigViewSet.as_view({'get': 'get_destination'}), name='get'),
     path('get-all-destination/', views.InterrestRateConfigViewSet.as_view({'get': 'get_all_destination'}), name='get_all'),
 ]
