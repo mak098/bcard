@@ -7,3 +7,8 @@ class UserSerializer (serializers.ModelSerializer):
     class Meta:
         model = User
         fields= ('agency','username', 'email', 'first_name', 'last_name','auth_token')
+class PUserSerializer (serializers.ModelSerializer):
+    agency = AgencySerializer(read_only=True)
+    class Meta:
+        model = User
+        fields= ('agency','username', 'email', 'first_name', 'last_name')

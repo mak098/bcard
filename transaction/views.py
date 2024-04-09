@@ -72,6 +72,7 @@ class CashInViewSet(viewsets.ModelViewSet):
 
 class cashOutViewSet(viewsets.ModelViewSet):
     class_serializer = CashOutSerializer
+    
     def out(self,request):
         user = self.request.user        
         if user.is_authenticated:
@@ -132,8 +133,12 @@ class cashOutViewSet(viewsets.ModelViewSet):
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
-
     
+    @action(detail=False, methods=['get'], url_path='get/(?P<code>\w+)')
+    def statement(self,request,code=None):
+        get_cashout = CashOut.objects.filter(cash_in__code=code)
+        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 def transaction_code(user_id,agency_id,cashin_id):
     import datetime
     today = datetime.date.today()
