@@ -32,7 +32,7 @@ class CashInViewSet(viewsets.ModelViewSet):
                 interrest ={"interrest":interrest_config.forfait,"type":"forfaite"}
                 amount = amount-interrest_config.forfait
             else:
-                interrest ={"interrest":(interrest_config.rate*amount)/100,"type":"pourcentage"}
+                interrest ={"interrest":amount-((interrest_config.rate*amount)/100),"type":"pourcentage"}
                 amount = amount-((interrest_config.rate*amount)/100)
             cash_in =CashIn.objects.create(
                 created_by=user,
@@ -77,37 +77,58 @@ class cashOutViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             code = request.data.get('code')
             amount = request.data.get('amount')
+            recipient = request.data.get("recipient")
+            recipient_phone = request.data.get("recipient_phone")
+            comment = request.data.get("comment")
+               
             if not CashIn.objects.filter(code=code).exists():
                 detail = "Ce code de transaction n'existe pas"
                 return Response({'detail': detail}, status=status.HTTP_400_ACCEPTED)
-
+           
             cashin = CashIn.objects.get(code=code)
+            
             if cashin.amount < amount :
                 detail = 'Le montant que vous voulez retirer est superieur a celui qui a été envoyé'
-                return Response({'detail': detail}, status=status.HTTP_400_ACCEPTED)
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
             
-            if CashOut.objects.filter(cashin__code=code).exists():
-                get_cashout = CashOut.objects.get(cashin__code=code)
-                if get_cashout.amount == cashin.amount:
-                    serializers = self.class_serializer(get_cashout,context={'request': request})
+            if CashOut.objects.filter(cash_in__code=code).exists():
+                
+                get_cashout = CashOut.objects.filter(cash_in__code=code)
+                out_amount = 0
+                
+                for element in get_cashout:
+                    out_amount += element.amount
+                    
+                if out_amount == cashin.amount:
                     detail ='Desolé le retrait est dèja effectué'
-                    return Response({'detail': detail,'data':serializers.data}, status=status.HTTP_400_ACCEPTED)
-                if get_cashout.amount +amount> cashin.amount:
-                    serializers = self.class_serializer(get_cashout,context={'request': request})
-                    detail =f"Desolé le retrait est dèja effectué a partie il reste un payement de {cashin.amount-cashout.amount}"
-                    return Response({'detail': detail,'data':serializers.data}, status=status.HTTP_400_ACCEPTED)
-                recipient = request.data.get("recipient")
-                recipient_phone = request.data.get("recipient_phone")
-                comment = request.data.get("comment")
+                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                if out_amount +amount> cashin.amount:
+                    detail =f"Desolé le retrait est dèja effectué a partie il reste un payement de "+str(cashin.amount-out_amount)
+                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                
                 cashout = CashOut.objects.create(
-                    cashin=cashin,
+                    cash_in=cashin,
                     amount= amount,
                     recipient=recipient,
                     recipient_phone=recipient_phone,
                     comment=comment
                 )
                 cashout.save()
+                
+                serializer = CashOutSerializer(cashout,context={'request': request})
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
             
+            cashout = CashOut.objects.create(
+                    cash_in=cashin,
+                    amount= amount,
+                    recipient=recipient,
+                    recipient_phone=recipient_phone,
+                    comment=comment
+                )
+            cashout.save()
+            
+            serializer = CashOutSerializer(cashout,context={'request': request})
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
