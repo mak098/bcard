@@ -12,4 +12,8 @@ urlpatterns = [
     path('cashin/get/<str:code>/', views.CashInViewSet.as_view({'get': 'get_with_code'}), name='get_with_code'),
     path('cashout/create/', views.cashOutViewSet.as_view({'post': 'out'}), name='out'),
     path('cashout/statement/<str:code>/', views.cashOutViewSet.as_view({'get': 'statement'}), name='out'),
+    path('cashout/today/', views.cashOutViewSet.as_view({'get': 'today'}), name='today'),
+    path('cashout/week/', views.cashOutViewSet.as_view({'get': 'week'}), name='week'),
+    path('cashout/month/', views.cashOutViewSet.as_view({'get': 'month'}), name='month'),
+    path('cashout/year/', views.cashOutViewSet.as_view({'get': 'year'}), name='year'),
 ]

@@ -91,7 +91,8 @@ class CashInAdmin(admin.ModelAdmin):
     #     return form
 @admin.register(CashOut)
 class CashOutAdmin(admin.ModelAdmin):
-    list_display = ("amount","recipient","recipient_phone","generate_pdf_preview_html")
+    # list_display = ("amount","recipient","recipient_phone","generate_pdf_preview_html")
+    list_display = ("amount","recipient","recipient_phone","created_at")
     fields = ("cash_in","amount","recipient","recipient_phone","comment")
     search_fields =("transaction__code","recipient")
     

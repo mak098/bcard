@@ -5,6 +5,9 @@ from django.db.models import QuerySet
 from rest_framework import permissions
 from Agency.models import InterrestRateConfig
 from rest_framework.decorators import action
+from datetime import datetime, timedelta,date
+from django.utils import timezone
+today_date = timezone.localdate()
 
 class CashInViewSet(viewsets.ModelViewSet):
     
@@ -139,6 +142,50 @@ class cashOutViewSet(viewsets.ModelViewSet):
         get_cashout = CashOut.objects.filter(cash_in__code=code)
         serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+    
+    def today(self,request):
+        start_of_today = datetime.combine(today_date, datetime.min.time())
+        end_of_today = datetime.combine(today_date, datetime.max.time())
+
+        get_cashout = CashOut.objects.filter(created_at__range=[start_of_today, end_of_today])
+        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+    
+    def week(self,request):
+        today_date = datetime.now().date()
+        # Calculate the start of the current week (assuming Monday is the start of the week)
+        start_of_week = today_date - timedelta(days=today_date.weekday())
+        # Calculate the end of the current week
+        end_of_week = start_of_week + timedelta(days=6)
+        get_cashout = CashOut.objects.filter(created_at__date__range=[start_of_week, end_of_week])
+        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+    
+    def month(self,request):
+        current_date = datetime.now()
+
+        # Get the first day of the current month
+        first_day_of_month = current_date.replace(day=1)
+
+        # Get the last day of the current month
+        last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
+
+        get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_month, last_day_of_month])
+        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+    
+    def year(self,request):
+        current_year = datetime.now().year
+
+        # Get the first day of the current year
+        first_day_of_year = datetime(current_year, 1, 1)
+
+        # Get the last day of the current year
+        last_day_of_year = datetime(current_year, 12, 31)
+        get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_year, last_day_of_year])
+        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
 def transaction_code(user_id,agency_id,cashin_id):
     import datetime
     today = datetime.date.today()
