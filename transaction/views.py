@@ -136,6 +136,19 @@ class CashInViewSet(viewsets.ModelViewSet):
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
+    def personalized_date(self, request, start=datetime.now().date, end=datetime.now().date):
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency = user.agency
+            start_date = datetime.strptime(start, '%Y-%m-%d')
+            end_date = datetime.strptime(end, '%Y-%m-%d')
+            cashin = CashIn.objects.filter(created_at__range=[start_date, end_date],created_by__agency=user_agency)
+            serializer = CashInSerializer(cashin,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
 class cashOutViewSet(viewsets.ModelViewSet):
     class_serializer = CashOutSerializer
     
