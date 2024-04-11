@@ -10,6 +10,12 @@ urlpatterns = [
     path('', include(router.urls)),
     path('cashin/create/', views.CashInViewSet.as_view({'post': 'create'}), name='create'),
     path('cashin/get/<str:code>/', views.CashInViewSet.as_view({'get': 'get_with_code'}), name='get_with_code'),
+
+    path('cashin/today/', views.CashInViewSet.as_view({'get': 'today'}), name='today'),
+    path('cashin/week/', views.CashInViewSet.as_view({'get': 'week'}), name='week'),
+    path('cashin/month/', views.CashInViewSet.as_view({'get': 'month'}), name='month'),
+    path('cashin/year/', views.CashInViewSet.as_view({'get': 'year'}), name='year'),
+
     path('cashout/create/', views.cashOutViewSet.as_view({'post': 'out'}), name='out'),
     path('cashout/statement/<str:code>/', views.cashOutViewSet.as_view({'get': 'statement'}), name='out'),
     path('cashout/today/', views.cashOutViewSet.as_view({'get': 'today'}), name='today'),

@@ -72,6 +72,69 @@ class CashInViewSet(viewsets.ModelViewSet):
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
+    
+    def today(self,request):
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency = user.agency
+            start_of_today = datetime.combine(today_date, datetime.min.time())
+            end_of_today = datetime.combine(today_date, datetime.max.time())
+            cashin = CashIn.objects.filter(created_at__range=[start_of_today, end_of_today],created_by__agency=user_agency)
+            serializer = CashInSerializer(cashin,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
+    def week(self,request):
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency = user.agency
+            today_date = datetime.now().date()
+            # Calculate the start of the current week (assuming Monday is the start of the week)
+            start_of_week = today_date - timedelta(days=today_date.weekday())
+            # Calculate the end of the current week
+            end_of_week = start_of_week + timedelta(days=6)
+            cashin = CashIn.objects.filter(created_at__date__range=[start_of_week, end_of_week],created_by__agency=user_agency)
+            serializer = CashInSerializer(cashin,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
+    def month(self,request):
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency =user.agency
+            current_date = datetime.now()
+            # Get the first day of the current month
+            first_day_of_month = current_date.replace(day=1)
+            # Get the last day of the current month
+            last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
+
+            cashin = CashIn.objects.filter(created_at__range=[first_day_of_month, last_day_of_month],created_by__agency=user_agency)
+            serializer = CashInSerializer(cashin,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
+    def year(self,request):
+
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency=user.agency
+            current_year = datetime.now().year
+            # Get the first day of the current year
+            first_day_of_year = datetime(current_year, 1, 1)
+            # Get the last day of the current year
+            last_day_of_year = datetime(current_year, 12, 31)
+            cashin = CashIn.objects.filter(created_at__range=[first_day_of_year, last_day_of_year],created_by__agency=user_agency)
+            serializer = CashInSerializer(cashin,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
 class cashOutViewSet(viewsets.ModelViewSet):
     class_serializer = CashOutSerializer
@@ -115,7 +178,8 @@ class cashOutViewSet(viewsets.ModelViewSet):
                     amount= amount,
                     recipient=recipient,
                     recipient_phone=recipient_phone,
-                    comment=comment
+                    comment=comment,
+                    created_by = user
                 )
                 cashout.save()
                 
@@ -127,7 +191,8 @@ class cashOutViewSet(viewsets.ModelViewSet):
                     amount= amount,
                     recipient=recipient,
                     recipient_phone=recipient_phone,
-                    comment=comment
+                    comment=comment,
+                    created_by = user
                 )
             cashout.save()
             
@@ -139,58 +204,83 @@ class cashOutViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='get/(?P<code>\w+)')
     def statement(self,request,code=None):
-        get_cashout = CashOut.objects.filter(cash_in__code=code)
-        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-    
+        user = self.request.user        
+        if user.is_authenticated:
+            get_cashout = CashOut.objects.filter(cash_in__code=code)
+            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
     def today(self,request):
-        start_of_today = datetime.combine(today_date, datetime.min.time())
-        end_of_today = datetime.combine(today_date, datetime.max.time())
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency = user.agency
+            start_of_today = datetime.combine(today_date, datetime.min.time())
+            end_of_today = datetime.combine(today_date, datetime.max.time())
 
-        get_cashout = CashOut.objects.filter(created_at__range=[start_of_today, end_of_today])
-        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-    
+            get_cashout = CashOut.objects.filter(created_at__range=[start_of_today, end_of_today],created_by__agency=user_agency)
+            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
     def week(self,request):
-        today_date = datetime.now().date()
-        # Calculate the start of the current week (assuming Monday is the start of the week)
-        start_of_week = today_date - timedelta(days=today_date.weekday())
-        # Calculate the end of the current week
-        end_of_week = start_of_week + timedelta(days=6)
-        get_cashout = CashOut.objects.filter(created_at__date__range=[start_of_week, end_of_week])
-        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-    
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency = user.agency
+            today_date = datetime.now().date()
+            # Calculate the start of the current week (assuming Monday is the start of the week)
+            start_of_week = today_date - timedelta(days=today_date.weekday())
+            # Calculate the end of the current week
+            end_of_week = start_of_week + timedelta(days=6)
+            get_cashout = CashOut.objects.filter(created_at__date__range=[start_of_week, end_of_week],created_by__agency=user_agency)
+            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
     def month(self,request):
-        current_date = datetime.now()
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency =user.agency
+            current_date = datetime.now()
+            # Get the first day of the current month
+            first_day_of_month = current_date.replace(day=1)
+            # Get the last day of the current month
+            last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
 
-        # Get the first day of the current month
-        first_day_of_month = current_date.replace(day=1)
+            get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_month, last_day_of_month],created_by__agency=user_agency)
+            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
-        # Get the last day of the current month
-        last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
-
-        get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_month, last_day_of_month])
-        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-    
     def year(self,request):
-        current_year = datetime.now().year
 
-        # Get the first day of the current year
-        first_day_of_year = datetime(current_year, 1, 1)
-
-        # Get the last day of the current year
-        last_day_of_year = datetime(current_year, 12, 31)
-        get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_year, last_day_of_year])
-        serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency=user.agency
+            current_year = datetime.now().year
+            # Get the first day of the current year
+            first_day_of_year = datetime(current_year, 1, 1)
+            # Get the last day of the current year
+            last_day_of_year = datetime(current_year, 12, 31)
+            get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_year, last_day_of_year],created_by__agency=user_agency)
+            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
 def transaction_code(user_id,agency_id,cashin_id):
     import datetime
     today = datetime.date.today()
-    year = today.year
-    
+    year = today.year    
     return f'{format_number(user_id)}-{format_number(agency_id)}-{format_number(cashin_id)}-{year}'
 
 def format_number(num):

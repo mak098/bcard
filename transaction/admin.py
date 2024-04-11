@@ -5,6 +5,8 @@ from django.forms import TextInput, Textarea
 from django.db import models
 from django.utils.html import format_html
 from .report_controlers import receipent,voucher_output
+import random
+import string
 class CashOutInlines(admin.TabularInline):
     model = CashOut
     extra = 1
@@ -16,7 +18,11 @@ class CashOutInlines(admin.TabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
     
-
+def generate_random_string(length=8):
+  
+  characters = string.ascii_lowercase + string.digits
+  random_string = ''.join(random.choices(characters, k=length))
+  return random_string
 @admin.register(CashIn)
 class CashInAdmin(admin.ModelAdmin):
     list_display = ("code","sender","amount","status","generate_pdf_preview_html")
@@ -36,13 +42,15 @@ class CashInAdmin(admin.ModelAdmin):
         # get agence id 
         
         obj.created_by = request.user
+        obj.code = generate_random_string()
         # obj.agence_origin =request.user.agency
         obj.save()
 
         Interrest.objects.create(
             created_by = request.user,
-            cash_in= obj,
-            amount = (obj.amount * obj.interrest.rate)/100
+            cash_in= obj
+            
+            
         ).save()
 
     #autocomplete interseter filter
