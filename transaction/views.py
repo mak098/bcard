@@ -143,7 +143,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             user_agency = user.agency
             _start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')          
             _end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')
-                        
+
             cashin = CashIn.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency)
             serializer = CashInSerializer(cashin,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -287,6 +287,21 @@ class cashOutViewSet(viewsets.ModelViewSet):
             last_day_of_year = datetime(current_year, 12, 31)
             get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_year, last_day_of_year],created_by__agency=user_agency)
             serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            detail = 'You are not allowed to make this aperation.'
+            return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
+
+    @action(detail=False, methods=['get'], url_path='get/(?P<start_date>\w+)/(?P<end_date>\w+)')
+    def personalized_date(self, request, start_date=datetime.now().date, end_date=datetime.now().date):
+        user = self.request.user        
+        if user.is_authenticated:
+            user_agency = user.agency
+            _start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')          
+            _end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')
+                        
+            cashout = CashOut.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency)
+            serializer = CashOut(cashout,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
