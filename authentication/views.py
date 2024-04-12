@@ -27,4 +27,8 @@ class UserViewSets(viewsets.ModelViewSet):
             detail = 'Authentication credentials are not correct.'
             return Response(data={'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-
+    def logout(self, request):
+        # Effacer le token côté client
+        response = Response({"detail": "Déconnexion réussie"}, status=status.HTTP_200_OK)
+        response.delete_cookie("auth_token")
+        return response

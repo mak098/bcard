@@ -8,7 +8,7 @@ class CashInSerializer(serializers.ModelSerializer):
     created_by = PUserSerializer(read_only=True)
     class Meta:
         model = CashIn
-        fields = ('interrest_config','created_by',"code","sender","amount","sender_phone","recipient","recipient_phone","interrest","created_at")
+        fields = ('url','interrest_config','created_by',"code","sender","amount","sender_phone","recipient","recipient_phone","interrest","created_at")
         
 class CashOutSerializer(serializers.ModelSerializer):
     cash_in =CashInSerializer(read_only =True)
