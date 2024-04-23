@@ -87,9 +87,9 @@ if IS_PRODUCTION:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'evve',
+            'NAME': 'mtrans',
             'USER': 'root',
-            #'PASSWORD': 'iIZzUxjNMQVs2Cc',
+            'PASSWORD': 'MTRANS1234',
             'HOST': 'localhost',
             'PORT': '3306',
             'OPTIONS': {
