@@ -10,3 +10,4 @@ django-admin-interface==0.28.1
 django-admin-list-filter-dropdown==1.0.3
 # translate number to word
 inflect==7.0.0
+mysqlclient==2.2.4
