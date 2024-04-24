@@ -1,5 +1,5 @@
-IS_PRODUCTION = False
-DEBUG = True
+IS_PRODUCTION = True
+DEBUG = False
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
