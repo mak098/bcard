@@ -85,18 +85,15 @@ WSGI_APPLICATION = 'mtrans.wsgi.application'
 
 if IS_PRODUCTION:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'mtrans',
-            'USER': 'root',
-            'PASSWORD': 'MTRANS1234',
-            'HOST': 'localhost',
-            'PORT': '3306',
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-            }
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mtrans',
+        'USER': 'root',
+        'PASSWORD': 'MTRANS1234',
+        'HOST': 'localhost',
+        'PORT': '',
     }
+}
 else:
     DATABASES = {
         'default': {
