@@ -15,7 +15,7 @@ urlpatterns = [
     path('cashin/week/', views.CashInViewSet.as_view({'get': 'week'}), name='week'),
     path('cashin/month/', views.CashInViewSet.as_view({'get': 'month'}), name='month'),
     path('cashin/year/', views.CashInViewSet.as_view({'get': 'year'}), name='year'),
-    path('cashin/customer-date/<str:start_date>/<str:end_date>/', views.CashInViewSet.as_view({'get': 'personalized_date'}), name='year'),
+    path('cashin/customizer-date/<str:start_date>/<str:end_date>/', views.CashInViewSet.as_view({'get': 'personalized_date'}), name='year'),
 
     path('cashout/create/', views.cashOutViewSet.as_view({'post': 'out'}), name='out'),
     path('cashout/statement/<str:code>/', views.cashOutViewSet.as_view({'get': 'statement'}), name='out'),
@@ -23,6 +23,6 @@ urlpatterns = [
     path('cashout/week/', views.cashOutViewSet.as_view({'get': 'week'}), name='week'),
     path('cashout/month/', views.cashOutViewSet.as_view({'get': 'month'}), name='month'),
     path('cashout/year/', views.cashOutViewSet.as_view({'get': 'year'}), name='year'),
-    path('cashout/customer-date/<str:start_date>/<str:end_date>/', views.CashInViewSet.as_view({'get': 'personalized_date'}), name='year'),
+    path('cashout/customizer-date/<str:start_date>/<str:end_date>/', views.CashInViewSet.as_view({'get': 'personalized_date'}), name='year'),
 
 ]
