@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from datetime import datetime, timedelta,date
 from django.utils import timezone
 today_date = timezone.localdate()
+from django.utils.timezone import make_aware
 
 class CashInViewSet(viewsets.ModelViewSet):
     
@@ -49,9 +50,8 @@ class CashInViewSet(viewsets.ModelViewSet):
                 interrest=interrest
             )
             cash_in.save()
-            user_id = user.id
-            agency_id = user.agency.id
-            cash_in.code =transaction_code(user_id,agency_id,cash_in.id)
+            code = generer_code(origin,destination)
+            cash_in.code =code
             cash_in.save()
             serializer = CashInSerializer(cash_in,context={'request': request})
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -79,7 +79,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             user_agency = user.agency
             start_of_today = datetime.combine(today_date, datetime.min.time())
             end_of_today = datetime.combine(today_date, datetime.max.time())
-            cashin = CashIn.objects.filter(created_at__range=[start_of_today, end_of_today],created_by__agency=user_agency)
+            cashin = CashIn.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency)
             serializer = CashInSerializer(cashin,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -95,7 +95,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             start_of_week = today_date - timedelta(days=today_date.weekday())
             # Calculate the end of the current week
             end_of_week = start_of_week + timedelta(days=6)
-            cashin = CashIn.objects.filter(created_at__date__range=[start_of_week, end_of_week],created_by__agency=user_agency)
+            cashin = CashIn.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency)
             serializer = CashInSerializer(cashin,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -112,7 +112,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             # Get the last day of the current month
             last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
 
-            cashin = CashIn.objects.filter(created_at__range=[first_day_of_month, last_day_of_month],created_by__agency=user_agency)
+            cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency)
             serializer = CashInSerializer(cashin,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -129,7 +129,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             first_day_of_year = datetime(current_year, 1, 1)
             # Get the last day of the current year
             last_day_of_year = datetime(current_year, 12, 31)
-            cashin = CashIn.objects.filter(created_at__range=[first_day_of_year, last_day_of_year],created_by__agency=user_agency)
+            cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency)
             serializer = CashInSerializer(cashin,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -144,7 +144,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             _start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')          
             _end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')
 
-            cashin = CashIn.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency)
+            cashin = CashIn.objects.filter(created_at__range=[make_aware(_start_date), make_aware(_end_date)],created_by__agency=user_agency)
             serializer = CashInSerializer(cashin,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -229,13 +229,15 @@ class cashOutViewSet(viewsets.ModelViewSet):
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
     def today(self,request):
+        
+        
         user = self.request.user        
         if user.is_authenticated:
             user_agency = user.agency
             start_of_today = datetime.combine(today_date, datetime.min.time())
             end_of_today = datetime.combine(today_date, datetime.max.time())
-
-            get_cashout = CashOut.objects.filter(created_at__range=[start_of_today, end_of_today],created_by__agency=user_agency)
+            
+            get_cashout = CashOut.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency)
             serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -251,7 +253,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
             start_of_week = today_date - timedelta(days=today_date.weekday())
             # Calculate the end of the current week
             end_of_week = start_of_week + timedelta(days=6)
-            get_cashout = CashOut.objects.filter(created_at__date__range=[start_of_week, end_of_week],created_by__agency=user_agency)
+            get_cashout = CashOut.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency)
             serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -268,7 +270,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
             # Get the last day of the current month
             last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
 
-            get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_month, last_day_of_month],created_by__agency=user_agency)
+            get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency)
             serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -285,7 +287,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
             first_day_of_year = datetime(current_year, 1, 1)
             # Get the last day of the current year
             last_day_of_year = datetime(current_year, 12, 31)
-            get_cashout = CashOut.objects.filter(created_at__range=[first_day_of_year, last_day_of_year],created_by__agency=user_agency)
+            get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency)
             serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -300,25 +302,44 @@ class cashOutViewSet(viewsets.ModelViewSet):
             _start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')          
             _end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')
                         
-            cashout = CashOut.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency)
+            cashout = CashOut.objects.filter(created_at__range=[make_aware(_start_date), make_aware(_end_date)],created_by__agency=user_agency)
             serializer = CashOut(cashout,context={'request': request},many=True)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
-def transaction_code(user_id,agency_id,cashin_id):
-    import datetime
-    today = datetime.date.today()
-    year = today.year    
-    return f'{format_number(user_id)}-{format_number(agency_id)}-{format_number(cashin_id)}-{year}'
 
-def format_number(num):
-    if num < 10:
-        return "000" + str(num)
-    elif num < 100:
-        return "00" + str(num)
-    elif num < 1000:
-        return "0" + str(num)
-    else:
-        return str(num)
+def generer_code(origine_agency,destination_agency):
+    origin_agency_id_romaine = integer_to_roman(origine_agency)
+    # print('len',"0"+origin_agency_id_romaine)
+    if len(origin_agency_id_romaine)==1:
+        origin_agency_id_romaine = "0"+origin_agency_id_romaine
+    destination_agency_id_romaine = integer_to_roman(destination_agency)
+    if len(destination_agency_id_romaine)==1:
+        destination_agency_id_romaine = "0"+destination_agency_id_romaine
+    now = datetime.now()
+    code = "{}{:02d}{:02d}{:02d}.{}{:02d}{:02d}.{:02d}{:04d}".format(origin_agency_id_romaine,now.year % 100, now.month, now.day,destination_agency_id_romaine,now.hour, now.minute, now.second, now.microsecond // 1000)
+    return code
+
+def integer_to_roman(num):
+    # Définition des symboles et de leurs valeurs
+    symbols = {
+        1: 'I', 4: 'IV', 5: 'V', 9: 'IX', 10: 'X',
+        40: 'XL', 50: 'L', 90: 'XC', 100: 'C',
+        400: 'CD', 500: 'D', 900: 'CM', 1000: 'M'
+    }
+    
+    # Création d'une liste des valeurs triées dans l'ordre décroissant
+    sorted_symbols = sorted(symbols.keys(), reverse=True)
+    
+    roman_numeral = ''
+    
+    # Parcourir les symboles en ordre décroissant
+    for value in sorted_symbols:
+        # Diviser le nombre par la valeur actuelle du symbole
+        quotient, num = divmod(num, value)
+        # Ajouter le symbole autant de fois que nécessaire
+        roman_numeral += symbols[value] * quotient
+    
+    return roman_numeral
