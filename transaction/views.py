@@ -312,9 +312,9 @@ class cashOutViewSet(viewsets.ModelViewSet):
 
 def generer_code(origine_agency,destination_agency):
     origin_agency_id_romaine = integer_to_roman(origine_agency)
-    # print('len',"0"+origin_agency_id_romaine)
+    
     if len(origin_agency_id_romaine)==1:
-        origin_agency_id_romaine = "0"+origin_agency_id_romaine
+        origin_agency_id_romaine = "0"+origin_agency_id_romaine        
     destination_agency_id_romaine = integer_to_roman(destination_agency)
     if len(destination_agency_id_romaine)==1:
         destination_agency_id_romaine = "0"+destination_agency_id_romaine
