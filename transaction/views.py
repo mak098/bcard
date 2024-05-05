@@ -356,19 +356,20 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
             code = request.query_params.get('code')
             get_cashout = CashOut.objects.filter(cash_in__code=code)
-            if 'position' and 'limit'  not in request.query_params:
-                detail = 'The position and the limit are obligatory'
-                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position = request.query_params.get('position')
-            limit =request.query_params.get('limit')
-            if page_position =='' or page_position==0 or page_position=="0":
-                page_position =1
-            if limit =='' or limit==0 or limit=="0":
-                limit =10
-            
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
             page_data = p.page(int(page_position))
             paginations ={
                 'number_of_rows':number_of_rows,
@@ -392,19 +393,20 @@ class cashOutViewSet(viewsets.ModelViewSet):
             end_of_today = datetime.combine(today_date, datetime.max.time())            
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency)
             
-            if 'position' and 'limit'  not in request.query_params:
-                detail = 'The position and the limit are obligatory'
-                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position = request.query_params.get('position')
-            limit =request.query_params.get('limit')
-            if page_position =='' or page_position==0 or page_position=="0":
-                page_position =1
-            if limit =='' or limit==0 or limit=="0":
-                limit =10
-            
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
             page_data = p.page(int(page_position))
             paginations ={
                 'number_of_rows':number_of_rows,
@@ -413,7 +415,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 'limit':int(limit)
             }
 
-            
+           
             serializer = CashOutSerializer(page_data,context={'request': request},many=True)
             return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
@@ -431,19 +433,20 @@ class cashOutViewSet(viewsets.ModelViewSet):
             # Calculate the end of the current week
             end_of_week = start_of_week + timedelta(days=6)
             get_cashout = CashOut.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency)
-            if 'position' and 'limit'  not in request.query_params:
-                detail = 'The position and the limit are obligatory'
-                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position = request.query_params.get('position')
-            limit =request.query_params.get('limit')
-            if page_position =='' or page_position==0 or page_position=="0":
-                page_position =1
-            if limit =='' or limit==0 or limit=="0":
-                limit =10
-            
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
             page_data = p.page(int(page_position))
             paginations ={
                 'number_of_rows':number_of_rows,
@@ -452,7 +455,6 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 'limit':int(limit)
             }
 
-            
             serializer = CashOutSerializer(page_data,context={'request': request},many=True)
             return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
@@ -471,19 +473,21 @@ class cashOutViewSet(viewsets.ModelViewSet):
             last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
 
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency)
-            if 'position' and 'limit'  not in request.query_params:
-                detail = 'The position and the limit are obligatory'
-                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position = request.query_params.get('position')
-            limit =request.query_params.get('limit')
-            if page_position =='' or page_position==0 or page_position=="0":
-                page_position =1
-            if limit =='' or limit==0 or limit=="0":
-                limit =10
             
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
             page_data = p.page(int(page_position))
             paginations ={
                 'number_of_rows':number_of_rows,
@@ -491,7 +495,6 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 'page_position':int(page_position),
                 'limit':int(limit)
             }
-
             
             serializer = CashOutSerializer(page_data,context={'request': request},many=True)
             return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
@@ -511,19 +514,20 @@ class cashOutViewSet(viewsets.ModelViewSet):
             # Get the last day of the current year
             last_day_of_year = datetime(current_year, 12, 31)
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency)
-            if 'position' and 'limit'  not in request.query_params:
-                detail = 'The position and the limit are obligatory'
-                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position = request.query_params.get('position')
-            limit =request.query_params.get('limit')
-            if page_position =='' or page_position==0 or page_position=="0":
-                page_position =1
-            if limit =='' or limit==0 or limit=="0":
-                limit =10
-            
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
             page_data = p.page(int(page_position))
             paginations ={
                 'number_of_rows':number_of_rows,
@@ -532,10 +536,9 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 'limit':int(limit)
             }
 
-            
             serializer = CashOutSerializer(page_data,context={'request': request},many=True)
             return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
@@ -545,27 +548,33 @@ class cashOutViewSet(viewsets.ModelViewSet):
         user = self.request.user       
         if user.is_authenticated:
             user_agency = user.agency
+            cashout = {}
             if 'start_date' and 'end_date'  not in request.query_params:
-                detail = 'The start  and the end date are obligatory'
-                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            start_date =request.query_params.get('start_date')
-            end_date =request.query_params.get('end_date')
+                CashOut.objects.filter(created_by__agency=user_agency)
+            else:
+                start_date =request.query_params.get('start_date')
+                end_date =request.query_params.get('end_date')
             
-            _start_date = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))          
-            _end_date = make_aware(datetime.strptime(end_date, '%Y-%m-%d'))         
-            cashout = CashOut.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency)
-            if 'position' and 'limit'  not in request.query_params:
-                    detail = 'The position and the limit are obligatory'
+                try:                
+                    _start_date = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))          
+                    _end_date = make_aware(datetime.strptime(end_date, '%Y-%m-%d'))
+                    cashout = CashOut.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency)
+                except Exception as e:
+                    detail = 'Start  or end date arror'
                     return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position = request.query_params.get('position')
-            limit =request.query_params.get('limit')
-            if page_position =='' or page_position==0 or page_position=="0":
-                page_position =1
-            if limit =='' or limit==0 or limit=="0":
-                limit =10
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
             p = Paginator(cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
             page_data = p.page(int(page_position))
             paginations ={
                 'number_of_rows':number_of_rows,
