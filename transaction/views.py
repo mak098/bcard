@@ -25,6 +25,8 @@ class CashInViewSet(viewsets.ModelViewSet):
             recipient = request.data.get('recipient')
             recipient_phone = request.data.get('recipient_phone')
             comment = request.data.get('comment')
+            sender_id_or_passport = request.data.get('sender_id_or_passport')
+            recipient_id_or_passport = request.data.get('recipient_id_or_passport')
             origin = user.agency.id
             destination = request.data.get('destination')
 
@@ -33,13 +35,23 @@ class CashInViewSet(viewsets.ModelViewSet):
                 return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
             
             interrest_config=InterrestRateConfig.objects.get(agency_liason__origin__id=origin,agency_liason__destination__id =destination,status=True)
-            interrest ={}
+            distribution ={}
             if amount<=interrest_config.threshold:
-                interrest ={"interrest":interrest_config.forfait,"type":"forfaite"}
-                amount = amount-interrest_config.forfait
+                amount_to_transfer = amount-interrest_config.forfait
+                distribution ={
+                    "amount_to_transfer":amount_to_transfer,
+                    "interrest":interrest_config.forfait,
+                    "type":"forfaite"
+                }
+                
             else:
-                interrest ={"interrest":amount-((interrest_config.rate*amount)/100),"type":"pourcentage"}
-                amount = amount-((interrest_config.rate*amount)/100)
+                amount_to_transfer = amount-((interrest_config.rate*amount)/100)
+                distribution ={
+                    "amount_to_transfer":amount_to_transfer,
+                    "interrest":amount-((interrest_config.rate*amount)/100),
+                    "type":"pourcentage"
+                }
+                
             cash_in =CashIn.objects.create(
                 created_by=user,
                 interrest_config=interrest_config,
@@ -49,7 +61,9 @@ class CashInViewSet(viewsets.ModelViewSet):
                 recipient=recipient,
                 recipient_phone =recipient_phone,
                 comment=comment,
-                interrest=interrest
+                sender_id_or_passport=sender_id_or_passport,
+                recipient_id_or_passport=recipient_id_or_passport,
+                distribution=distribution
             )
             cash_in.save()
             code = generer_code(origin,destination)
@@ -292,42 +306,49 @@ class cashOutViewSet(viewsets.ModelViewSet):
             recipient = request.data.get("recipient")
             recipient_phone = request.data.get("recipient_phone")
             comment = request.data.get("comment")
+            recipient_id_or_passport = request.data.get("recipient_id_or_passport")
                
             if not CashIn.objects.filter(code=code).exists():
                 detail = "Ce code de transaction n'existe pas"
                 return Response({'detail': detail}, status=status.HTTP_400_ACCEPTED)
            
             cashin = CashIn.objects.get(code=code)
+
+            load_transfer_distribution = cashin.distribution
             
-            if cashin.amount < amount :
+            if load_transfer_distribution['amount_to_transfer'] < amount :
                 detail = 'Le montant que vous voulez retirer est superieur a celui qui a été envoyé'
                 return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
             
             if CashOut.objects.filter(cash_in__code=code).exists():
                 
-                get_cashout = CashOut.objects.filter(cash_in__code=code)
-                out_amount = 0
+                if cashin.status==True:
+                    detail ='Desolé le retrait est dèja effectué'
+                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
                 
+                get_cashout = CashOut.objects.filter(cash_in__code=code)
+                out_amount = 0                
                 for element in get_cashout:
                     out_amount += element.amount
                     
-                if out_amount == cashin.amount:
-                    detail ='Desolé le retrait est dèja effectué'
-                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-                if out_amount +amount> cashin.amount:
-                    detail =f"Desolé le retrait est dèja effectué a partie il reste un payement de "+str(cashin.amount-out_amount)
-                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
                 
+                if out_amount +amount> load_transfer_distribution['amount_to_transfer']:
+                    detail =f"Desolé le retrait est dèja effectué a partie il reste un payement de "+str(load_transfer_distribution['amount_to_transfer']-out_amount)
+                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
                 cashout = CashOut.objects.create(
                     cash_in=cashin,
                     amount= amount,
                     recipient=recipient,
                     recipient_phone=recipient_phone,
                     comment=comment,
+                    recipient_id_or_passport=recipient_id_or_passport,
                     created_by = user
                 )
                 cashout.save()
-                
+                if amount == out_amount +amount:
+                    cashin.status = True
+                    cashin.save()
                 serializer = CashOutSerializer(cashout,context={'request': request})
                 return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
             
@@ -337,9 +358,13 @@ class cashOutViewSet(viewsets.ModelViewSet):
                     recipient=recipient,
                     recipient_phone=recipient_phone,
                     comment=comment,
+                    recipient_id_or_passport=recipient_id_or_passport,
                     created_by = user
                 )
             cashout.save()
+            if amount == load_transfer_distribution['amount_to_transfer']:
+                    cashin.status = True
+                    cashin.save()
             
             serializer = CashOutSerializer(cashout,context={'request': request})
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)

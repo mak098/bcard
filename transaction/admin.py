@@ -30,8 +30,7 @@ class CashInAdmin(admin.ModelAdmin):
     search_fields =("code","sender")
     list_filter = ("interrest_config__agency_liason__origin","interrest_config__agency_liason__destination","status","created_at")
     inlines = (CashOutInlines,)
-    # raw_id_fields = ('interrest',)
-    # readonly_fields =['interrest']
+    
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
