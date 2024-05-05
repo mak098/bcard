@@ -9,11 +9,13 @@ from datetime import datetime, timedelta,date
 from django.utils import timezone
 today_date = timezone.localdate()
 from django.utils.timezone import make_aware
+from django.core.paginator import Paginator
 
 class CashInViewSet(viewsets.ModelViewSet):
     
-    class_serializer = CashInSerializer
-   
+    serializer_class = CashInSerializer
+    queryset = CashIn.objects.all()
+
     def create(self,request):
         user = self.request.user        
         if user.is_authenticated:
@@ -73,35 +75,83 @@ class CashInViewSet(viewsets.ModelViewSet):
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
     
+    @action(detail=False, methods=['get'], url_path='today')
     def today(self,request):
         user = self.request.user        
         if user.is_authenticated:
             user_agency = user.agency
             start_of_today = datetime.combine(today_date, datetime.min.time())
             end_of_today = datetime.combine(today_date, datetime.max.time())
-            cashin = CashIn.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency)
-            serializer = CashInSerializer(cashin,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            cashin = CashIn.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency).order_by('created_at')
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
+            p = Paginator(cashin, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            serializer = CashInSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
+    @action(detail=False, methods=['get'], url_path='week')
     def week(self,request):
         user = self.request.user        
         if user.is_authenticated:
             user_agency = user.agency
-            today_date = datetime.now().date()
+            today_date = datetime.now()
             # Calculate the start of the current week (assuming Monday is the start of the week)
             start_of_week = today_date - timedelta(days=today_date.weekday())
             # Calculate the end of the current week
             end_of_week = start_of_week + timedelta(days=6)
-            cashin = CashIn.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency)
-            serializer = CashInSerializer(cashin,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            cashin = CashIn.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency).order_by('created_at')
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
+            p = Paginator(cashin, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+
+            serializer = CashInSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
+    @action(detail=False, methods=['get'], url_path='month')
     def month(self,request):
         user = self.request.user        
         if user.is_authenticated:
@@ -112,13 +162,36 @@ class CashInViewSet(viewsets.ModelViewSet):
             # Get the last day of the current month
             last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
 
-            cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency)
-            serializer = CashInSerializer(cashin,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency).order_by('created_at')
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
+            p = Paginator(cashin, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            serializer = CashInSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
+    @action(detail=False, methods=['get'], url_path='year')
     def year(self,request):
 
         user = self.request.user        
@@ -129,31 +202,88 @@ class CashInViewSet(viewsets.ModelViewSet):
             first_day_of_year = datetime(current_year, 1, 1)
             # Get the last day of the current year
             last_day_of_year = datetime(current_year, 12, 31)
-            cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency)
-            serializer = CashInSerializer(cashin,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency).order_by('created_at')
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
+            p = Paginator(cashin, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            serializer = CashInSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
-    @action(detail=False, methods=['get'], url_path='get/(?P<start_date>\w+)/(?P<end_date>\w+)')
+    @action(detail=False, methods=['get'], url_path='personalized_date')
     def personalized_date(self, request, start_date=datetime.now().date, end_date=datetime.now().date):
         user = self.request.user        
         if user.is_authenticated:
             user_agency = user.agency
-            _start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')          
-            _end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')
+            cashin={}
+            if 'start_date' and 'end_date'  not in request.query_params:
+                cashin = CashIn.objects.filter(created_by__agency=user_agency).order_by('created_at')               
+            else:
+                start_date =request.query_params.get('start_date')
+                end_date =request.query_params.get('end_date')
+            
+                try:                
+                    _start_date = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))          
+                    _end_date = make_aware(datetime.strptime(end_date, '%Y-%m-%d'))
+                    cashin = CashIn.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency).order_by('created_at')
+                except Exception as e:
+                    detail = 'Start  or end date arror'
+                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            page_position,limit=1,1
+            if 'position' and 'limit'   in request.query_params:
+                
+                page_position = request.query_params.get('position')
+                limit =request.query_params.get('limit')
+                if page_position =='' or page_position==0 or page_position=="0":
+                    page_position =1
+                if limit =='' or limit==0 or limit=="0":
+                    limit =2
+            p = Paginator(cashin, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            if int(page_position)>number_of_pages:
+                page_position =number_of_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
 
-            cashin = CashIn.objects.filter(created_at__range=[make_aware(_start_date), make_aware(_end_date)],created_by__agency=user_agency)
-            serializer = CashInSerializer(cashin,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            serializer = CashInSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
+            
+            
+            
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
 class cashOutViewSet(viewsets.ModelViewSet):
-    class_serializer = CashOutSerializer
-    
+    serializer_class = CashOutSerializer
+    queryset = CashOut.objects.all()
     def out(self,request):
         user = self.request.user        
         if user.is_authenticated:
@@ -217,33 +347,80 @@ class cashOutViewSet(viewsets.ModelViewSet):
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
     
-    @action(detail=False, methods=['get'], url_path='get/(?P<code>\w+)')
-    def statement(self,request,code=None):
+    @action(detail=False, methods=['get'], url_path='statement')
+    def statement(self,request):
         user = self.request.user        
         if user.is_authenticated:
+            if 'code' not in request.query_params:
+                detail = 'The transaction code are obligatory'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            code = request.query_params.get('code')
             get_cashout = CashOut.objects.filter(cash_in__code=code)
-            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            if 'position' and 'limit'  not in request.query_params:
+                detail = 'The position and the limit are obligatory'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            page_position = request.query_params.get('position')
+            limit =request.query_params.get('limit')
+            if page_position =='' or page_position==0 or page_position=="0":
+                page_position =1
+            if limit =='' or limit==0 or limit=="0":
+                limit =10
+            
+            p = Paginator(get_cashout, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            serializer = CashOutSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
-
-    def today(self,request):
-        
-        
+    
+    @action(detail=False, methods=['get'], url_path='today')
+    def today(self,request): 
         user = self.request.user        
         if user.is_authenticated:
             user_agency = user.agency
             start_of_today = datetime.combine(today_date, datetime.min.time())
-            end_of_today = datetime.combine(today_date, datetime.max.time())
-            
+            end_of_today = datetime.combine(today_date, datetime.max.time())            
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency)
-            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            
+            if 'position' and 'limit'  not in request.query_params:
+                detail = 'The position and the limit are obligatory'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            page_position = request.query_params.get('position')
+            limit =request.query_params.get('limit')
+            if page_position =='' or page_position==0 or page_position=="0":
+                page_position =1
+            if limit =='' or limit==0 or limit=="0":
+                limit =10
+            
+            p = Paginator(get_cashout, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            
+            serializer = CashOutSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
-
+    
+    @action(detail=False, methods=['get'], url_path='week')
     def week(self,request):
         user = self.request.user        
         if user.is_authenticated:
@@ -254,12 +431,35 @@ class cashOutViewSet(viewsets.ModelViewSet):
             # Calculate the end of the current week
             end_of_week = start_of_week + timedelta(days=6)
             get_cashout = CashOut.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency)
-            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            if 'position' and 'limit'  not in request.query_params:
+                detail = 'The position and the limit are obligatory'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            page_position = request.query_params.get('position')
+            limit =request.query_params.get('limit')
+            if page_position =='' or page_position==0 or page_position=="0":
+                page_position =1
+            if limit =='' or limit==0 or limit=="0":
+                limit =10
+            
+            p = Paginator(get_cashout, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            
+            serializer = CashOutSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
+    @action(detail=False, methods=['get'], url_path='month')
     def month(self,request):
         user = self.request.user        
         if user.is_authenticated:
@@ -271,12 +471,35 @@ class cashOutViewSet(viewsets.ModelViewSet):
             last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
 
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency)
-            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            if 'position' and 'limit'  not in request.query_params:
+                detail = 'The position and the limit are obligatory'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            page_position = request.query_params.get('position')
+            limit =request.query_params.get('limit')
+            if page_position =='' or page_position==0 or page_position=="0":
+                page_position =1
+            if limit =='' or limit==0 or limit=="0":
+                limit =10
+            
+            p = Paginator(get_cashout, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            
+            serializer = CashOutSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
+    @action(detail=False, methods=['get'], url_path='year')
     def year(self,request):
 
         user = self.request.user        
@@ -288,23 +511,70 @@ class cashOutViewSet(viewsets.ModelViewSet):
             # Get the last day of the current year
             last_day_of_year = datetime(current_year, 12, 31)
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency)
-            serializer = CashOutSerializer(get_cashout,context={'request': request},many=True)
+            if 'position' and 'limit'  not in request.query_params:
+                detail = 'The position and the limit are obligatory'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            page_position = request.query_params.get('position')
+            limit =request.query_params.get('limit')
+            if page_position =='' or page_position==0 or page_position=="0":
+                page_position =1
+            if limit =='' or limit==0 or limit=="0":
+                limit =10
+            
+            p = Paginator(get_cashout, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+
+            
+            serializer = CashOutSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
 
-    @action(detail=False, methods=['get'], url_path='get/(?P<start_date>\w+)/(?P<end_date>\w+)')
-    def personalized_date(self, request, start_date=datetime.now().date, end_date=datetime.now().date):
-        user = self.request.user        
+    @action(detail=False, methods=['get'], url_path='personalized_date')
+    def personalized_date(self, request):
+        user = self.request.user       
         if user.is_authenticated:
             user_agency = user.agency
-            _start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')          
-            _end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d %H:%M:%S')
-                        
-            cashout = CashOut.objects.filter(created_at__range=[make_aware(_start_date), make_aware(_end_date)],created_by__agency=user_agency)
-            serializer = CashOut(cashout,context={'request': request},many=True)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            if 'start_date' and 'end_date'  not in request.query_params:
+                detail = 'The start  and the end date are obligatory'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            start_date =request.query_params.get('start_date')
+            end_date =request.query_params.get('end_date')
+            
+            _start_date = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))          
+            _end_date = make_aware(datetime.strptime(end_date, '%Y-%m-%d'))         
+            cashout = CashOut.objects.filter(created_at__range=[_start_date, _end_date],created_by__agency=user_agency)
+            if 'position' and 'limit'  not in request.query_params:
+                    detail = 'The position and the limit are obligatory'
+                    return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            page_position = request.query_params.get('position')
+            limit =request.query_params.get('limit')
+            if page_position =='' or page_position==0 or page_position=="0":
+                page_position =1
+            if limit =='' or limit==0 or limit=="0":
+                limit =10
+            p = Paginator(cashout, int(limit))
+            number_of_rows = p.count
+            number_of_pages = p.num_pages
+            page_data = p.page(int(page_position))
+            paginations ={
+                'number_of_rows':number_of_rows,
+                'number_of_pages':number_of_pages,
+                'page_position':int(page_position),
+                'limit':int(limit)
+            }
+            serializer = CashOutSerializer(page_data,context={'request': request},many=True)
+            return Response({"data":serializer.data,"paginator":paginations}, status=status.HTTP_202_ACCEPTED)
         else:
             detail = 'You are not allowed to make this aperation.'
             return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)        
