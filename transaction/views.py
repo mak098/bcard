@@ -17,7 +17,8 @@ class CashInViewSet(viewsets.ModelViewSet):
     queryset = CashIn.objects.all()
 
     def create(self,request):
-        user = self.request.user        
+       
+        user = self.request.user              
         if user.is_authenticated:
             amount = request.data.get('amount')
             sender = request.data.get('sender')
@@ -29,26 +30,30 @@ class CashInViewSet(viewsets.ModelViewSet):
             recipient_id_or_passport = request.data.get('recipient_id_or_passport')
             origin = user.agency.id
             destination = request.data.get('destination')
+            if not isinstance(amount, (int, float, complex)) and not isinstance(amount, bool):
+                detail = 'the amount must be a number.'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            
 
             if not InterrestRateConfig.objects.filter(agency_liason__origin__id=origin,agency_liason__destination__id =destination,status=True).exists():
-                detail = 'You are not allowed to make this aperation.'
+                detail = 'Transaction not authorized. Please check the destination agency.'
                 return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
             
             interrest_config=InterrestRateConfig.objects.get(agency_liason__origin__id=origin,agency_liason__destination__id =destination,status=True)
             distribution ={}
             if amount<=interrest_config.threshold:
-                amount_to_transfer = amount-interrest_config.forfait
+                amount_to_be_received = amount-interrest_config.forfait
                 distribution ={
-                    "amount_to_transfer":amount_to_transfer,
+                    "amount_to_be_received":amount_to_be_received,
                     "interrest":interrest_config.forfait,
                     "type":"forfaite"
                 }
                 
             else:
-                amount_to_transfer = amount-((interrest_config.rate*amount)/100)
+                amount_to_be_received = amount-((interrest_config.rate*amount)/100)
                 distribution ={
-                    "amount_to_transfer":amount_to_transfer,
-                    "interrest":amount-((interrest_config.rate*amount)/100),
+                    "amount_to_be_received":amount_to_be_received,
+                    "interrest":(interrest_config.rate*amount)/100,
                     "type":"pourcentage"
                 }
                 
@@ -307,7 +312,11 @@ class cashOutViewSet(viewsets.ModelViewSet):
             recipient_phone = request.data.get("recipient_phone")
             comment = request.data.get("comment")
             recipient_id_or_passport = request.data.get("recipient_id_or_passport")
-               
+            
+            if not isinstance(amount, (int, float, complex)) and not isinstance(amount, bool):
+                detail = 'the amount must be a number.'
+                return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
+             
             if not CashIn.objects.filter(code=code).exists():
                 detail = "Ce code de transaction n'existe pas"
                 return Response({'detail': detail}, status=status.HTTP_400_ACCEPTED)
@@ -316,7 +325,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
 
             load_transfer_distribution = cashin.distribution
             
-            if load_transfer_distribution['amount_to_transfer'] < amount :
+            if load_transfer_distribution['amount_to_be_received'] < amount :
                 detail = 'Le montant que vous voulez retirer est superieur a celui qui a été envoyé'
                 return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
             
@@ -332,8 +341,8 @@ class cashOutViewSet(viewsets.ModelViewSet):
                     out_amount += element.amount
                     
                 
-                if out_amount +amount> load_transfer_distribution['amount_to_transfer']:
-                    detail =f"Desolé le retrait est dèja effectué a partie il reste un payement de "+str(load_transfer_distribution['amount_to_transfer']-out_amount)
+                if out_amount +amount> load_transfer_distribution['amount_to_be_received']:
+                    detail =f"Desolé le retrait est dèja effectué a partie il reste un payement de "+str(load_transfer_distribution['amount_to_be_received']-out_amount)
                     return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
                 cashout = CashOut.objects.create(
@@ -362,7 +371,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                     created_by = user
                 )
             cashout.save()
-            if amount == load_transfer_distribution['amount_to_transfer']:
+            if amount == load_transfer_distribution['amount_to_be_received']:
                     cashin.status = True
                     cashin.save()
             
