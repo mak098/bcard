@@ -29,7 +29,7 @@ class Agency(models.Model):
     firm  = models.ForeignKey('Firm', blank=True,on_delete=models.PROTECT,related_name='firm_attachement' ,verbose_name='Firm' )
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL,null=True, blank=True,on_delete=models.PROTECT,related_name='agaency_created_by' ,verbose_name='Create by' )
     name =models.CharField(max_length=350,null=False, verbose_name= "name")
-    # detail =models.CharField(max_length=350,null=True, blank=True,verbose_name= "detail",)
+    email =models.CharField(max_length=350,default='-',null=True, verbose_name= "Email")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     address =models.CharField(max_length=350,blank=True,null=True,verbose_name= "Adress")

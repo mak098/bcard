@@ -10,7 +10,7 @@ class AgencySerializer (serializers.ModelSerializer):
     firm = FirmSerializer(read_only= True)
     class Meta:
         model = Agency
-        fields= ('firm','id','name', 'address','phone')
+        fields= ('firm','id','name', 'address','phone','email')
 
 class Agency_Serializer (serializers.ModelSerializer):
     class Meta:

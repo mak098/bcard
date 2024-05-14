@@ -5,7 +5,7 @@ class AgencyInline(admin.TabularInline):
 
 	model = Agency
 	extra = 0
-	fields =('name', 'address','phone')
+	fields =('name', 'address','phone','email')
 	
 	def save_related(self, request, obj, form, change):
 		obj.created_by = request.user
@@ -40,7 +40,7 @@ class FirmAdmin(admin.ModelAdmin):
 class AgencyAdmin(admin.ModelAdmin):
 	
 	list_display = ('name', 'phone')
-	fields = ('name', 'address','phone')
+	fields = ('name', 'address','phone','email')
 	# list_filter = ('is_active', )
 	search_fields = ('name','created_by')
 	def save_model(self, request, obj, form, change):

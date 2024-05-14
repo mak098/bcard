@@ -102,7 +102,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             start_of_today = datetime.combine(today_date, datetime.min.time())
             end_of_today = datetime.combine(today_date, datetime.max.time())
             cashin = CashIn.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency).order_by('created_at')
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -110,7 +110,7 @@ class CashInViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(cashin, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -141,7 +141,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             # Calculate the end of the current week
             end_of_week = start_of_week + timedelta(days=6)
             cashin = CashIn.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency).order_by('created_at')
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -149,7 +149,7 @@ class CashInViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(cashin, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -182,7 +182,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             last_day_of_month = first_day_of_month.replace(month=first_day_of_month.month % 12 + 1, day=1) - timedelta(days=1)
 
             cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency).order_by('created_at')
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -190,7 +190,7 @@ class CashInViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(cashin, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -222,7 +222,7 @@ class CashInViewSet(viewsets.ModelViewSet):
             # Get the last day of the current year
             last_day_of_year = datetime(current_year, 12, 31)
             cashin = CashIn.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency).order_by('created_at')
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -230,7 +230,7 @@ class CashInViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(cashin, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -269,7 +269,7 @@ class CashInViewSet(viewsets.ModelViewSet):
                 except Exception as e:
                     detail = 'Start  or end date arror'
                     return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -277,7 +277,7 @@ class CashInViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(cashin, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -390,7 +390,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
             code = request.query_params.get('code')
             get_cashout = CashOut.objects.filter(cash_in__code=code)
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -398,7 +398,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -427,7 +427,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
             end_of_today = datetime.combine(today_date, datetime.max.time())            
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency)
             
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -435,7 +435,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -467,7 +467,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
             # Calculate the end of the current week
             end_of_week = start_of_week + timedelta(days=6)
             get_cashout = CashOut.objects.filter(created_at__date__range=[make_aware(start_of_week), make_aware(end_of_week)],created_by__agency=user_agency)
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -475,7 +475,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -508,7 +508,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
 
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_month), make_aware(last_day_of_month)],created_by__agency=user_agency)
             
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -516,7 +516,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -548,7 +548,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
             # Get the last day of the current year
             last_day_of_year = datetime(current_year, 12, 31)
             get_cashout = CashOut.objects.filter(created_at__range=[make_aware(first_day_of_year), make_aware(last_day_of_year)],created_by__agency=user_agency)
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
                 page_position = request.query_params.get('position')
@@ -556,7 +556,7 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(get_cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
@@ -596,14 +596,14 @@ class cashOutViewSet(viewsets.ModelViewSet):
                 except Exception as e:
                     detail = 'Start  or end date arror'
                     return Response({'detail': detail}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            page_position,limit=1,1
+            page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:                
                 page_position = request.query_params.get('position')
                 limit =request.query_params.get('limit')
                 if page_position =='' or page_position==0 or page_position=="0":
                     page_position =1
                 if limit =='' or limit==0 or limit=="0":
-                    limit =2
+                    limit =5
             p = Paginator(cashout, int(limit))
             number_of_rows = p.count
             number_of_pages = p.num_pages
