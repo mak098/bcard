@@ -99,9 +99,8 @@ class CashInViewSet(viewsets.ModelViewSet):
         user = self.request.user        
         if user.is_authenticated:
             user_agency = user.agency
-            start_of_today = datetime.combine(today_date, datetime.min.time())
-            end_of_today = datetime.combine(today_date, datetime.max.time())
-            cashin = CashIn.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency).order_by('created_at')
+            date_today = timezone.now().date()            
+            cashin = CashIn.objects.filter(created_at__date=date_today,created_by__agency=user_agency).order_by('created_at')
             page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
                 
@@ -423,9 +422,8 @@ class cashOutViewSet(viewsets.ModelViewSet):
         user = self.request.user        
         if user.is_authenticated:
             user_agency = user.agency
-            start_of_today = datetime.combine(today_date, datetime.min.time())
-            end_of_today = datetime.combine(today_date, datetime.max.time())            
-            get_cashout = CashOut.objects.filter(created_at__range=[make_aware(start_of_today), make_aware(end_of_today)],created_by__agency=user_agency)
+            date_today = timezone.now().date()            
+            get_cashout = CashOut.objects.filter(created_at__date=date_today,created_by__agency=user_agency)
             
             page_position,limit=1,5
             if 'position' and 'limit'   in request.query_params:
